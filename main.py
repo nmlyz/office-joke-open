@@ -1,86 +1,90 @@
 #!/usr/bin/env python3
-"""office-joke-open: write one funny line about office life to /output/entry.txt.
+"""Office Joke Open — one-line entry writer.
 
-The line is a small office joke: the payroll system pays the narrator
-twice, and finance's solution is to ask them to forget the second payment,
-politely, in writing. The twist lands in the last three words, where three
-contradictions stack: forgetting something, politely, and in writing.
-
-Standard library only, no network. Deterministic: the same bytes on every run.
+The joke is a single office line about a payroll mix-up. This script
+only carries that line from source to the entry file, checking its
+shape on the way so a broken or empty line can never be submitted.
+Standard library only; no network, no randomness, no arguments.
 """
 
 import os
 import sys
 
-# The line is built from two clauses, one per beat of the joke, so each
-# beat can be checked on its own: the double payment and finance's reply,
-# then the payoff that turns "forget it" into a written, polite instruction.
-CLAUSES = (
-    "The payroll system paid me twice in April, and finance's solution was "
-    "to ask me to forget the second one,",
-    "politely, in writing.",
+# Where the judge reads the entry from. The directory is provided by
+# the harness; this script creates it only if it is missing, and it
+# never changes the permissions of the directory itself.
+ENTRY_PATH = "/output/entry.txt"
+
+# Length window for a one-line joke entry.
+MIN_CHARS = 1
+MAX_CHARS = 200
+
+# The entry itself. Kept as one literal so the file it produces is
+# byte-for-byte reproducible on every run.
+JOKE = (
+    "The payroll system paid me twice in April, and finance's "
+    "solution was to ask me to forget the second one, politely, "
+    "in writing."
 )
 
-LINE = " ".join(CLAUSES)
 
-MIN_LEN = 1
-MAX_LEN = 200
+def fail(message):
+    """Report a validation problem and stop with a non-zero status."""
+    print(f"entry rejected: {message}", file=sys.stderr)
+    raise SystemExit(1)
 
 
-def problems(text: str) -> list:
-    """Return every gate violation for the entry text (empty means valid)."""
-    found = []
-    if not (MIN_LEN <= len(text) <= MAX_LEN):
-        found.append(f"entry is {len(text)} code points, must be {MIN_LEN}-{MAX_LEN}")
-    stripped = text.strip()
-    if not stripped:
-        found.append("entry must not be only white space")
-    if text != stripped:
-        found.append("entry must not start or end with white space")
+def check_single_line(text):
+    """The entry must be exactly one line: no newline characters."""
     if "\n" in text or "\r" in text:
-        found.append("entry must be a single line")
+        fail("entry must be a single line")
+
+
+def check_length(text):
+    """The entry must fit inside the 1-200 character window."""
+    if not MIN_CHARS <= len(text) <= MAX_CHARS:
+        fail(f"entry length {len(text)} is outside {MIN_CHARS}-{MAX_CHARS}")
+
+def check_spacing(text):
+    """No doubled spaces, and no leading or trailing whitespace."""
     if "  " in text:
-        found.append("entry must not contain a double space")
-    if not stripped.endswith("."):
-        found.append("entry must end as one sentence")
-    # One sentence, one line: a second full stop anywhere would mean the
-    # joke rambles past its punchline instead of landing on one line.
+        fail("entry contains a double space")
+    if text != text.strip():
+        fail("entry has leading or trailing whitespace")
+
+
+def check_sentence(text):
+    """One sentence: it must end with a single full stop."""
+    if not text.endswith("."):
+        fail("entry must end with a full stop")
     if text.count(".") != 1:
-        found.append("entry must be a single sentence (one full stop)")
-    return found
+        fail("entry must contain exactly one full stop")
 
 
-def main() -> int:
-    if len(CLAUSES) != 2:
-        print("line must be built from exactly two clauses", file=sys.stderr)
-        return 1
-    text = LINE
-    bad = problems(text)
-    if bad:
-        for item in bad:
-            print(item, file=sys.stderr)
-        return 1
-    out_dir = os.environ.get("MAKEFUN_OUTPUT_DIR") or "/output"
-    os.makedirs(out_dir, exist_ok=True)
-    path = os.path.join(out_dir, "entry.txt")
-    with open(path, "w", encoding="utf-8", newline="\n") as f:
-        f.write(text)
-    # chmod is best-effort: in the grading sandbox /output is a root-owned
-    # mount and the program runs as uid 65534, so chmod there raises EPERM.
-    # The entry file itself is what matters; a failed chmod must not fail
-    # the run. (The output directory itself is never chmodded or removed.)
-    try:
-        os.chmod(path, 0o644)
-    except OSError:
-        pass
-    # Read the file back as bytes and confirm they match the line exactly.
-    with open(path, "rb") as f:
-        if f.read() != text.encode("utf-8"):
-            print("entry.txt does not match the funny line", file=sys.stderr)
-            return 1
-    print(f"wrote {len(text)} characters to {path}")
-    return 0
+def validate(text):
+    """Run every shape check, in order, before anything is written."""
+    check_single_line(text)
+    check_spacing(text)
+    check_length(text)
+    check_sentence(text)
+
+
+def write_entry(text):
+    """Write the validated line as UTF-8 with no trailing newline,
+    then lock the file to 0644."""
+    directory = os.path.dirname(ENTRY_PATH)
+    if directory:
+        os.makedirs(directory, exist_ok=True)
+    with open(ENTRY_PATH, "w", encoding="utf-8", newline="\n") as handle:
+        handle.write(text)
+    os.chmod(ENTRY_PATH, 0o644)
+
+
+def main():
+    validate(JOKE)
+    write_entry(JOKE)
+    print(f"wrote {len(JOKE)} characters to {ENTRY_PATH}")
 
 
 if __name__ == "__main__":
-    raise SystemExit(main())
+    main()

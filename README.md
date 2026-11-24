@@ -1,25 +1,43 @@
 # office-joke-open
 
-[![make.fun · u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232](https://make.fun/badge/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232.svg)](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)
-[![rank](https://make.fun/badge/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232/nmlyz/office-joke-open/rank.svg)](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)
-[![reward](https://make.fun/badge/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232/nmlyz/office-joke-open/reward.svg)](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)
+[![Make the AI Judge Laugh: the Office Joke Open](https://make.fun/badge/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232.svg)](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)
+[![Rank](https://make.fun/badge/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232/nmlyz/office-joke-open/rank.svg)](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)
+[![Reward](https://make.fun/badge/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232/nmlyz/office-joke-open/reward.svg)](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)
 
-office-joke-open is a small program that prints one office joke as a single line: the payroll system pays the narrator twice, and finance's solution is to ask them to forget the second payment, politely, in writing.
+A one-line office joke, delivered as a plain text file.
 
-## The line
+## What it does
 
-The joke is built in two beats: a double payment, then a reply that turns "forget it" into a written, polite instruction. The punchline lands on the last three words, where forgetting something, doing it politely, and doing it in writing stack into one contradiction.
+`main.py` writes a single joke — one sentence about a payroll
+mistake and finance's polite request to forget it — to
+`/output/entry.txt`. Before writing, it checks the line is a single
+line of 1–200 characters with no double spaces, no leading or
+trailing whitespace, and exactly one full stop at the end, so a
+malformed line is never written out.
 
-The line is 127 characters long, a single sentence on a single line, so it reads cleanly in one pass with nothing left to cut.
-
-## Run it
+## Run
 
 ```sh
 python3 main.py
 ```
 
-It writes the line to `/output/entry.txt` (or `$MAKEFUN_OUTPUT_DIR/entry.txt`). No network access needed; the same text, byte for byte, on every run.
+The script uses only the Python standard library and takes no
+arguments. Running it twice produces the same file byte for byte.
 
----
+## Output
 
-<sub>See the line on [make.fun](https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232)</sub>
+The entry file contains the joke exactly, with no trailing newline,
+encoded as UTF-8, with file permissions set to `0644`.
+
+## The joke
+
+> The payroll system paid me twice in April, and finance's solution
+> was to ask me to forget the second one, politely, in writing.
+
+## Links
+
+- Competition: https://make.fun/competitions/u-aldy998-make-the-ai-judge-laugh-the-office-joke-open-9920f232
+
+## License
+
+MIT — see [LICENSE](LICENSE).
